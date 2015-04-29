@@ -58,7 +58,7 @@ do
 done
 
 echo "###### Processing videos found in: $INPUT_PATH"
-find "$INPUT_PATH" -type f \( -name '*.mp4' -o -name '*.MP4' -o -name '*.mov' -o -name '*.MOV' -o -name '*.avi' -o -name '*.AVI' \) -print0 | while read -d $'\0' infile
+find "$INPUT_PATH" -type f \( -name '*.mp4' -o -name '*.3gp' -o -name '*.MP4' -o -name '*.mov' -o -name '*.MOV' -o -name '*.avi' -o -name '*.AVI' \) -print0 | while read -d $'\0' infile
 do
 	filename=`basename "$infile"`
 	filename_no_suffix="${filename%.*}"
