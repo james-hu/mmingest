@@ -1,11 +1,8 @@
 #!/bin/bash
-INPUT_PATH="$1"
+ORIGINAL_INPUT_PATH="$1"
 OUTPUT_PATH="$2"
 
-#INPUT_PATH=/media/james/Windows/tmp3
-#OUTPUT_PATH=./work
-
-if [ -z "$INPUT_PATH" ]; then
+if [ -z "$ORIGINAL_INPUT_PATH" ]; then
 	echo "Please specify the source directory as the first argument"
 	exit
 fi
@@ -15,6 +12,8 @@ if [ -z "$OUTPUT_PATH" ]; then
 	exit
 fi
 
+mkdir -p "$OUTPUT_PATH"
+INPUT_PATH="${ORIGINAL_INPUT_PATH}_work"
 LOG_FILE="$OUTPUT_PATH/ingest.log"
 
 log(){
@@ -30,6 +29,9 @@ log(){
 echo `date` >> $LOG_FILE
 
 trap "exit" INT
+
+echo "###### Making a copy of the input directory to work on"
+cp -R -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
 
 echo "###### Processing photos found in: $INPUT_PATH"
 find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' -o -iname '*.xmp' \) -print0 | while read -d $'\0' infile
