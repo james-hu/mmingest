@@ -32,7 +32,7 @@ echo `date` >> $LOG_FILE
 trap "exit" INT
 
 echo "###### Processing photos found in: $INPUT_PATH"
-find "$INPUT_PATH" -type f \( -name '*.jpg' -o -name '*.JPG' -o -name '*.CR2' -o -name '*.cr2' -o -name '*.xmp' \) -print0 | while read -d $'\0' infile
+find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' -o -iname '*.xmp' \) -print0 | while read -d $'\0' infile
 do
 	
 	filename=`basename "$infile"`
@@ -58,7 +58,7 @@ do
 done
 
 echo "###### Processing videos found in: $INPUT_PATH"
-find "$INPUT_PATH" -type f \( -name '*.mp4' -o -name '*.3gp' -o -name '*.MP4' -o -name '*.mov' -o -name '*.MOV' -o -name '*.avi' -o -name '*.AVI' \) -print0 | while read -d $'\0' infile
+find "$INPUT_PATH" -type f \( -iname '*.mp4' -o -iname '*.3gp' -o -iname '*.mp4' -o -iname '*.mov' -o -iname '*.avi' \) -print0 | while read -d $'\0' infile
 do
 	filename=`basename "$infile"`
 	filename_no_suffix="${filename%.*}"
