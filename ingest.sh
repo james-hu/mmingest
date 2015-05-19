@@ -32,14 +32,14 @@ echo `date` >> $LOG_FILE
 trap "exit" INT
 
 echo "###### Processing photos found in: $INPUT_PATH"
-find "$INPUT_PATH" -type f \( -name '*.jpg' -o -name '*.JPG' \) -print0 | while read -d $'\0' infile
+find "$INPUT_PATH" -type f \( -name '*.jpg' -o -name '*.JPG' -o -name '*.CR2' -o -name '*.cr2' -o -name '*.xmp' \) -print0 | while read -d $'\0' infile
 do
 	
 	filename=`basename "$infile"`
 	filename_no_suffix="${filename%.*}"
-	new_name=`exiftool -exif:DateTimeOriginal -S -d "%Y/%m/%Y_%m_%d/%Y%m%d_$filename_no_suffix.jpg" "$infile" |cut -c 19-`
+	new_name=`exiftool -exif:DateTimeOriginal -S -d "%Y/%m/%Y_%m_%d/%Y%m%d_$filename" "$infile" |cut -c 19-`
 	if [ -z "$new_name" ]; then
-		new_name=`exiftool -FileModifyDate -S -d "%Y/%m/%Y_%m_%d/%Y%m%d_$filename_no_suffix.jpg" "$infile" |cut -c 17-`
+		new_name=`exiftool -FileModifyDate -S -d "%Y/%m/%Y_%m_%d/%Y%m%d_$filename" "$infile" |cut -c 17-`
 	fi
 	orientation=`exiftool -b -exif:Orientation# -S  "$infile"`
 	
