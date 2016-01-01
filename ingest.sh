@@ -117,11 +117,8 @@ do
 	rm -f "$infile"
 done
 
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
-find "$OUTPUT_PATH" -empty -type d -delete
+# repeat several times to remove empty directories
+for i in {1..10}
+do
+   find "$OUTPUT_PATH" -empty -type d -delete
+done
