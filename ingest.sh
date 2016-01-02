@@ -41,7 +41,7 @@ echo `date` >> $LOG_FILE
 trap "exit" INT
 
 echo "###### Making a copy of the input directory to work on"
-cp -R -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
+cp -R -p -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
 
 echo "###### Processing photos found in: $INPUT_PATH"
 find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' -o -iname '*.xmp' \) -print0 | while read -d $'\0' infile
@@ -94,13 +94,19 @@ do
 	#cp -p "$infile" "$mvfile"
 	echo "$infile -> $outfile"
 
-	# try re-package first
-	ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -vcodec copy -acodec copy -movflags faststart -map_metadata 0 -f mp4 "$outfile" &
-	wait $!
-	ratio=$(echo "scale=0;100*$(wc -c < "$infile")/$(wc -c < "$outfile")" | bc)
+	ffprobe "$infile" 2>&1 | grep -q "Video: h264"
+	if [ $? -eq 1 ]; then
+		# try re-package first
+		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -vcodec copy -acodec copy -movflags faststart -map_metadata 0 -f mp4 "$outfile" &
+		wait $!
+		ratio=$(echo "scale=0;100*$(wc -c < "$infile")/$(wc -c < "$outfile")" | bc)
+	else
+		ratio="9999"
+	fi
+
 	if (( $ratio > 60 )); then
 		# try transcoding as well
-		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -c:v libx264 -crf 21 -profile:v main -level 4.1 -preset veryslow -g 150 -c:a libfdk_aac -profile:a aac_he -b:a 64k -movflags faststart -map_metadata 0 -f mp4 "$outfile.transcoded.mp4" &
+		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -c:v libx264 -crf 21 -profile:v main -level 4.1 -preset veryslow -g 150 -pix_fmt yuvj420p -c:a libfdk_aac -profile:a aac_he -b:a 64k -ar 32000 -movflags faststart -map_metadata 0 -f mp4 "$outfile.transcoded.mp4" &
 		wait $!
 		if (( $ratio > $(echo "scale=0;100*$(wc -c < "$infile")/$(wc -c < "$outfile.transcoded.mp4")" | bc) )); then
 			rm -f "$outfile"
