@@ -10,12 +10,12 @@ ORIGINAL_INPUT_PATH="$1"
 OUTPUT_PATH="$2"
 
 if [ -z "$ORIGINAL_INPUT_PATH" ]; then
-	echo >&2 "Please specify the source directory as the first argument"
+	echo >&2 "Please specify source directory as the first argument. Files in the source directory will not be modified."
 	exit 1
 fi
 
 if [ -z "$OUTPUT_PATH" ]; then
-	echo >&2 "Please specify the destination directory as the second argument"
+	echo >&2 "Please specify destination directory as the second argument. If the directory does not exist, it will be created."
 	exit 1
 fi
 
@@ -128,3 +128,10 @@ for i in {1..10}
 do
    find "$OUTPUT_PATH" -empty -type d -delete
 done
+
+command -v dot_clean >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+	dot_clean -m "$OUTPUT_PATH"
+fi
+find "$OUTPUT_PATH" -name "._*" -delete
+find "$OUTPUT_PATH" -name ".DS_Store" -delete
