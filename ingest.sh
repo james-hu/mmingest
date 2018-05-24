@@ -28,12 +28,22 @@ log(){
 	f1="$2"
 	f2="$3"
 	ratio="$4"
-	if [ -z "$ration" ]; then
+	if [ -z "$ratio" ]; then
 		f1size=$(wc -c < "$f1")
 		f2size=$(wc -c < "$f2")
 		ratio=$(echo "scale=2;100*$f2size/$f1size" | bc)
 	fi
 	echo "$action: ($ratio%) $f1 -> $f2" >> "$LOG_FILE"
+}
+
+move_related_files(){
+	inf="$1"
+	outf="$2"
+	for suffix in ".xmp", ".XMP", ".aae", ".AAE"; do
+		if [[ -s "${inf%.*}$suffix" ]]; then
+			mv "${inf%.*}$suffix" "${outf%.*}$suffix"
+		fi
+	done
 }
 
 echo `date` >> $LOG_FILE
@@ -44,8 +54,13 @@ echo "###### Making a copy of the input directory to work on"
 cp -R -p -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
 
 echo "###### Processing photos found in: $INPUT_PATH"
-find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' -o -iname '*.xmp' \) -print0 | while read -d $'\0' infile
+find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' \) -print0 | while read -d $'\0' infile
 do
+	infile_size=$(wc -c < "$infile")
+	if (( infile_size < 2 )); then
+		log "skipped" "$infile" "" "--"
+		continue
+	fi
 
 	filename=`basename "$infile"`
 	filename_no_suffix="${filename%.*}"
@@ -69,11 +84,18 @@ do
 	fi
 
 	rm -f "$infile"
+	move_related_files "$infile" "$outfile"
 done
 
 echo "###### Processing videos found in: $INPUT_PATH"
 find "$INPUT_PATH" -type f \( -iname '*.mp4' -o -iname '*.3gp' -o -iname '*.mp4' -o -iname '*.mov' -o -iname '*.avi' \) -print0 | while read -d $'\0' infile
 do
+	infile_size=$(wc -c < "$infile")
+	if (( infile_size < 2 )); then
+		log "skipped" "$infile" "" "--"
+		continue
+	fi
+
 	filename=`basename "$infile"`
 	filename_no_suffix="${filename%.*}"
 	filesuffix="${filename##*.}"
@@ -95,32 +117,39 @@ do
 	echo "$infile -> $outfile"
 
 	ffprobe "$infile" 2>&1 | grep -q "Video: h264"
-	if [ $? -eq 1 ]; then
+	if [ $? -eq 0 ]; then
 		# try re-package first
 		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -vcodec copy -acodec copy -movflags faststart -map_metadata 0 -f mp4 "$outfile" &
 		wait $!
-		ratio=$(echo "scale=0;100*$(wc -c < "$infile")/$(wc -c < "$outfile")" | bc)
+		repackage_ratio=$(echo "scale=0;100*$infile_size/$(wc -c < "$outfile")" | bc)
 	else
-		ratio="9999"
+		repackage_ratio="9999"
 	fi
+	# echo "infile_size=$infile_size"
+	# echo "repackage_ratio=$repackage_ratio"
 
-	if (( $ratio > 60 )); then
+	if (( $repackage_ratio > 80 )); then
 		# try transcoding as well
 		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -c:v libx264 -crf 21 -profile:v main -level 4.1 -preset veryslow -g 150 -pix_fmt yuvj420p -c:a libfdk_aac -profile:a aac_he -b:a 64k -ar 32000 -movflags faststart -map_metadata 0 -f mp4 "$outfile.transcoded.mp4" &
 		wait $!
-		if (( $ratio > $(echo "scale=0;100*$(wc -c < "$infile")/$(wc -c < "$outfile.transcoded.mp4")" | bc) )); then
+		transcode_ratio=$(echo "scale=0;100*$infile_size/$(wc -c < "$outfile.transcoded.mp4")" | bc)
+		# echo "transcode_ratio=$transcode_ratio"
+		if (( $repackage_ratio > $transcode_ratio + 15 )); then
+			# use transcoded
 			rm -f "$outfile"
 			mv "$outfile.transcoded.mp4" "$outfile"
-			log "transcoded" "$infile" "$outfile"
+			log "transcoded" "$infile" "$outfile" $transcode_ratio
 		else
+			# use repackaged
 			rm -f "$outfile.transcoded.mp4"
-			log "re-packaged" "$infile" "$outfile"
+			log "re-packaged" "$infile" "$outfile" $repackage_ratio
 		fi
 	else
-		log "re-packaged" "$infile" "$outfile"
+		log "re-packaged" "$infile" "$outfile" $repackage_ratio
 	fi
 
 	rm -f "$infile"
+	move_related_files "$infile" "$outfile"
 done
 
 # repeat several times to remove empty directories
