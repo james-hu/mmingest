@@ -54,7 +54,7 @@ echo "###### Making a copy of the input directory to work on"
 cp -R -p -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
 
 echo "###### Processing photos found in: $INPUT_PATH"
-find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' \) -print0 | while read -d $'\0' infile
+find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' -o -iname '*.png' \) -print0 | while read -d $'\0' infile
 do
 	infile_size=$(wc -c < "$infile")
 	if (( infile_size < 2 )); then
