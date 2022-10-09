@@ -4,12 +4,13 @@ This is the tool to move and transform your photos and videos. It is handy for i
 
 ## Third party tools required
 * bash
+  * So that you can run this Shell script.
 * exiftool
- * On Mac, install with ```brew install exiftool```
+  * On Mac, install with ```brew install exiftool```
 * exiftran
- * On Mac, install with ```brew install fbida```
+  * On Mac, install with ```brew install fbida```
 * ffmpeg with FDK codec
- * On Mac, install with ```brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac```
+  * On Mac, install with ```brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac```
 
 ## Usage
 
