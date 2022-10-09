@@ -1,10 +1,10 @@
 #!/bin/bash
 echo "Home page: https://github.com/james-hu/mmingest"
 
-command -v exiftool >/dev/null 2>&1 || { echo >&2 "exiftool is not installed.  Aborting."; exit 1; }
-command -v exiftran >/dev/null 2>&1 || { echo >&2 "exiftran (part of fbida) is not installed.  Aborting."; exit 1; }
-command -v ffmpeg >/dev/null 2>&1 || { echo >&2 "ffmpeg with libfdk is not installed.  Aborting."; exit 1; }
-ffmpeg -h 2>&1 | grep -q enable-libfdk-aac || { echo >&2 "ffmpeg does not have libfdk enabled.  Aborting."; exit 1; }
+command -v exiftool >/dev/null 2>&1 || { echo >&2 "exiftool is not installed. Try this if you are using a Mac: brew install exiftool"; exit 1; }
+command -v exiftran >/dev/null 2>&1 || { echo >&2 "exiftran (part of fbida) is not installed. Try this if you are using a Mac: brew install fbida"; exit 1; }
+command -v ffmpeg >/dev/null 2>&1 || { echo >&2 "ffmpeg with libfdk is not installed. Try this if you are using a Mac: brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac"; exit 1; }
+ffmpeg -h 2>&1 | grep -q enable-libfdk-aac || { echo >&2 "ffmpeg does not have libfdk enabled. Try this if you are using a Mac: brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac"; exit 1; }
 
 ORIGINAL_INPUT_PATH="$1"
 OUTPUT_PATH="$2"
@@ -15,7 +15,7 @@ if [ -z "$ORIGINAL_INPUT_PATH" ]; then
 fi
 
 if [ -z "$OUTPUT_PATH" ]; then
-	echo >&2 "Please specify destination directory as the second argument. If the directory does not exist, it will be created."
+	echo >&2 "Please specify destination directory as the second argument. If the directory does not exist yet, it will be created automatically."
 	exit 1
 fi
 
