@@ -14,7 +14,7 @@ This is the tool to move and transform your photos and videos. It is handy for i
 
 ## Usage
 
-Just run ```ingest.sh <source-dir> <dest-dir>```. You must specify the source directory as the first argument and the destination directory as the second argument.
+Just run ```ingest.sh [-c] <source-dir> <dest-dir>```. You must specify the source directory as the first (after options) argument and the destination directory as the second argument.
 
 If you forget to install required third party tools or forget to specify the arguments, you will see error messages.
 
@@ -24,6 +24,10 @@ All write operations happen in the destination directory. Those operations inclu
 
 Please make sure that there is enough space in the destination directory.
 
+Options:
+
+- `-c` - Don't try to transcode the original input files 
+
 ## Behavior
 
 * Files in the source directory will not be deleted or modified. They will be copied into the working directory before being processed. So it is safe to point the source directory to the location in your phone or camera. And if you want to re-process all the files, you just need to remove the working directory and clean up the destination directory and run the command line again.
@@ -31,3 +35,6 @@ Please make sure that there is enough space in the destination directory.
 * For photo files, they will be moved/renamed into ```photos/YYYY/MM/YYYY_MM_DD/YYYYMMDD_<original_file_name>``` in the destination directory. Image rotation will happen if the EXIF meta data indicates that the photo should be rotated when being displayed.
 
 * For videos, they will be transcoded into "H.264+AAC in web streaming friendly MP4 container" format and saved as ```videos/converted/YYYY/YYYY-MM/YYYYMMDD_<original_file_name>.mp4``` in the destination directory. In the case that the compression ratio of the transcoding is greater than 80%, the original file will be simply re-packaged rather than transcoded.
+
+To Pause and resume processing after the initial copying has already been done, you can just use `CTRL-C` and then re-run the command line with the first argument (the input/source dir) changed to `-`.
+

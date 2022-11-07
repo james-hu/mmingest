@@ -6,16 +6,24 @@ command -v exiftran >/dev/null 2>&1 || { echo >&2 "exiftran (part of fbida) is n
 command -v ffmpeg >/dev/null 2>&1 || { echo >&2 "ffmpeg with libfdk is not installed. Try this if you are using a Mac: brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac"; exit 1; }
 ffmpeg -h 2>&1 | grep -q enable-libfdk-aac || { echo >&2 "ffmpeg does not have libfdk enabled. Try this if you are using a Mac: brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac"; exit 1; }
 
+while getopts 'c' opt; do
+  case $opt in
+    c) DIRECT_COPY=true ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
 ORIGINAL_INPUT_PATH="$1"
 OUTPUT_PATH="$2"
 
+
 if [ -z "$ORIGINAL_INPUT_PATH" ]; then
-	echo >&2 "Please specify source directory as the first argument. Files in the source directory will not be modified."
+	echo >&2 "Please specify source directory as the first argument after the options. Files in the source directory will not be modified."
 	exit 1
 fi
 
 if [ -z "$OUTPUT_PATH" ]; then
-	echo >&2 "Please specify destination directory as the second argument. If the directory does not exist yet, it will be created automatically."
+	echo >&2 "Please specify destination directory as the second argument after the options. If the directory does not exist yet, it will be created automatically."
 	exit 1
 fi
 
@@ -50,15 +58,23 @@ echo `date` >> $LOG_FILE
 
 trap "exit" INT
 
-echo "###### Making a copy of the input directory to work on"
-cp -R -p -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
+if [ "$ORIGINAL_INPUT_PATH" = "-" ]; then
+	echo "###### No input directory specified"
+else
+	echo "###### Making a copy of the input directory to work on"
+	cp -R -p -f "$ORIGINAL_INPUT_PATH" "$INPUT_PATH"
+fi
 
-echo "###### Processing photos found in: $INPUT_PATH"
+echo "###### Processing photos found under: $INPUT_PATH"
 find "$INPUT_PATH" -type f \( -iname '*.jpg' -o -iname '*.cr2' -o -iname '*.png' \) -print0 | while read -d $'\0' infile
 do
+	if [ ! -f "$infile" ]; then
+		log "skipped (non-existing)" "$infile" "" "--"
+		continue
+	fi
 	infile_size=$(wc -c < "$infile")
 	if (( infile_size < 2 )); then
-		log "skipped" "$infile" "" "--"
+		log "skipped (size: $infile_size)" "$infile" "" "--"
 		continue
 	fi
 
@@ -87,12 +103,16 @@ do
 	move_related_files "$infile" "$outfile"
 done
 
-echo "###### Processing videos found in: $INPUT_PATH"
+echo "###### Processing videos found under: $INPUT_PATH"
 find "$INPUT_PATH" -type f \( -iname '*.mp4' -o -iname '*.3gp' -o -iname '*.mp4' -o -iname '*.mov' -o -iname '*.avi' \) -print0 | while read -d $'\0' infile
 do
+	if [ ! -f "$infile" ]; then
+		log "skipped (non-existing)" "$infile" "" "--"
+		continue
+	fi
 	infile_size=$(wc -c < "$infile")
 	if (( infile_size < 2 )); then
-		log "skipped" "$infile" "" "--"
+		log "skipped (size: $infile_size)" "$infile" "" "--"
 		continue
 	fi
 
@@ -117,7 +137,7 @@ do
 	echo "$infile -> $outfile"
 
 	ffprobe "$infile" 2>&1 | grep -q "Video: h264"
-	if [ $? -eq 0 ]; then
+	if [ -z "$DIRECT_COPY" ] && [ $? -eq 0 ]; then
 		# try re-package first
 		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -vcodec copy -acodec copy -movflags faststart -map_metadata 0 -f mp4 "$outfile" &
 		wait $!
@@ -128,7 +148,7 @@ do
 	# echo "infile_size=$infile_size"
 	# echo "repackage_ratio=$repackage_ratio"
 
-	if (( $repackage_ratio > 80 )); then
+	if [ -z "$DIRECT_COPY" ] && (( $repackage_ratio > 80 )); then
 		# try transcoding as well
 		ffmpeg -hide_banner -nostats -loglevel panic -y -i "$infile" -c:v libx264 -crf 21 -profile:v main -level 4.1 -preset veryslow -g 150 -pix_fmt yuvj420p -c:a libfdk_aac -profile:a aac_he -b:a 64k -ar 32000 -movflags faststart -map_metadata 0 -f mp4 "$outfile.transcoded.mp4" &
 		wait $!
