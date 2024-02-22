@@ -2,14 +2,17 @@
 
 This is the tool to move and transform your photos and videos. It is handy for importing and organizing photos and videos taken by phones, tablets, and cameras.
 
-## Third party tools required
+## Dependencies that need to be installed in advance
+
 * bash
   * So that you can run this Shell script.
 * exiftool
   * On Mac, install with ```brew install exiftool```
+  * On Ubuntu, install with ```sudo apt install exiftool```
 * exiftran
   * On Mac, install with ```brew install fbida```
-* ffmpeg with FDK codec
+  * On Ubuntu, install with ```sudo apt install exiftran```
+* ffmpeg with AAC codec
   * On Mac, install with ```brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac```
 
 ## Usage
@@ -28,7 +31,7 @@ Options:
 
 - `-c` - Don't try to transcode the original input files 
 
-## Behavior
+## Behaviour/Functionality
 
 * Files in the source directory will not be deleted or modified. They will be copied into the working directory before being processed. So it is safe to point the source directory to the location in your phone or camera. And if you want to re-process all the files, you just need to remove the working directory and clean up the destination directory and run the command line again.
 
