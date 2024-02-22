@@ -19,6 +19,9 @@ OUTPUT_PATH="$2"
 
 if [ -z "$ORIGINAL_INPUT_PATH" ]; then
 	echo >&2 "Please specify source directory as the first argument after the options. Files in the source directory will not be modified."
+	echo "Usage:"
+	echo "ingest.sh [-c] source destination"
+	echo "  -c      Don't try to transcode the original input files"
 	exit 1
 fi
 
