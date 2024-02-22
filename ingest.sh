@@ -1,10 +1,10 @@
 #!/bin/bash
 echo "Home page: https://github.com/james-hu/mmingest"
 
-command -v exiftool >/dev/null 2>&1 || { echo >&2 "exiftool is not installed. Try this if you are using a Mac: brew install exiftool"; exit 1; }
-command -v exiftran >/dev/null 2>&1 || { echo >&2 "exiftran (part of fbida) is not installed. Try this if you are using a Mac: brew install fbida"; exit 1; }
-command -v ffmpeg >/dev/null 2>&1 || { echo >&2 "ffmpeg with libfdk is not installed. Try this if you are using a Mac: brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac"; exit 1; }
-ffmpeg -h 2>&1 | grep -q enable-libfdk-aac || { echo >&2 "ffmpeg does not have libfdk enabled. Try this if you are using a Mac: brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac"; exit 1; }
+command -v exiftool >/dev/null 2>&1 || { echo >&2 "exiftool is not installed. Try 'brew install exiftool' on Mac or 'sudo apt install exiftool' on Ubuntu."; exit 1; }
+command -v exiftran >/dev/null 2>&1 || { echo >&2 "exiftran is not installed. Try 'brew install fbida' on Mac or 'sudo apt install exiftran' on Ubuntu."; exit 1; }
+command -v ffmpeg >/dev/null 2>&1 || { echo >&2 "ffmpeg is not installed. Try 'brew tap homebrew-ffmpeg/ffmpeg; brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-fdk-aac' on Mac."; exit 1; }
+ffmpeg -codecs 2>&1 | grep -q aac || { echo >&2 "AAC codec is not available in ffmpeg. Try 'sudo apt install libfdk-aac-dev' on Ubuntu"; exit 1; }
 
 while getopts 'c' opt; do
   case $opt in
